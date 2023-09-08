@@ -68,22 +68,23 @@ namespace RunTI
             {
                 for (int i = 0; i < args.Length; i++)
                 {
-                    switch (args[i])
+                    string arg = args[i].ToLower();
+
+                    if ((arg == "-e" || arg == "--exec"))
                     {
-                        case "/EXEFilename":
-                            exe = args[i + 1];
-                            break;
-                        case "/CommandLine":
-                            arguments = args[i + 1];
-                            break;
-                        case "/StartDirectory":
-                            dirPath = args[i + 1];
-                            break;
-                        default:
-                            // Do nothing
-                            break;
+                        exe = args[++i];
+                    }
+                    if ((arg == "-c" || arg == "--command"))
+                    {
+                        arguments = args[++i];
+                    }
+                    if ((arg == "-d" || arg == "--directory"))
+                    {
+                        dirPath = args[++i];
                     }
                 }
+
+                //MessageBox.Show($"Unknown or duplicate argument!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // Support for running msc's like /EXEFilename (services.msc, gpedit.msc)
                 if (exe.Split('.').Last() == "msc")
@@ -93,6 +94,9 @@ namespace RunTI
                     
                 }
             }
+            //MessageBox.Show(exe);
+            //MessageBox.Show(arguments);
+            //MessageBox.Show(dirPath);
 
             if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath.Replace("\"", "")))
             {

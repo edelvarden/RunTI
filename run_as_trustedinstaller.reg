@@ -1,0 +1,77 @@
+Windows Registry Editor Version 5.00
+
+; ----------------------------------------------------------------
+; exe files
+; ----------------------------------------------------------------
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.exe\shell\AdvancedRun]
+@="Run as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\UserAccountControlSettings.exe\",0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.exe\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename \"%1\""
+
+
+; ----------------------------------------------------------------
+; batch files
+; ----------------------------------------------------------------
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.bat\shell\AdvancedRun]
+@="Run as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\UserAccountControlSettings.exe\",0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.bat\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\cmd.exe /CommandLine \"/c \\\"%1\\\"\""
+
+
+; ----------------------------------------------------------------
+; cmd files
+; ----------------------------------------------------------------
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.cmd\shell\AdvancedRun]
+@="Run as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\UserAccountControlSettings.exe\",0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.cmd\shell\AdvancedRun\shell\TrustedInstaller\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\cmd.exe /CommandLine \"/c \\\"%1\\\"\""
+
+
+; ----------------------------------------------------------------
+; PowerShell files
+; ----------------------------------------------------------------
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\AdvancedRun]
+@="Run as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\UserAccountControlSettings.exe\",0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe /CommandLine \"-ExecutionPolicy Unrestricted -File \\\"%1\\\"\""
+
+
+; ----------------------------------------------------------------
+; reg files
+; ----------------------------------------------------------------
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.reg\shell\AdvancedRun]
+@="Merge as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\UserAccountControlSettings.exe\",0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.reg\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\cmd.exe /CommandLine \"/c reg import \\\"%1\\\"\""
+
+
+
+; ----------------------------------------------------------------
+; Open cmd on directory from folder background context menu
+; ----------------------------------------------------------------
+[HKEY_CLASSES_ROOT\Directory\Background\shell\AdvancedRun]
+@="Open in CMD as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\imageres.dll\",263"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\cmd.exe /CommandLine \"/s /k pushd \\\"%V\\\"\""
+
+; ----------------------------------------------------------------
+; Open cmd on directory from folder context menu
+; ----------------------------------------------------------------
+[HKEY_CLASSES_ROOT\Directory\shell\AdvancedRun]
+@="Open in CMD as TrustedInstaller"
+"icon"="\"%SystemRoot%\\System32\\imageres.dll\",263"
+
+[HKEY_CLASSES_ROOT\Directory\shell\AdvancedRun\command]
+@="RunTI.exe /EXEFilename C:\\Windows\\System32\\cmd.exe /CommandLine \"/s /k pushd \\\"%V\\\"\""

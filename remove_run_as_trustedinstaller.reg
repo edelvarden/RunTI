@@ -1,0 +1,41 @@
+Windows Registry Editor Version 5.00
+
+; ----------------------------------------------------------------
+; exe files
+; ----------------------------------------------------------------
+[-HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.exe\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; batch files
+; ----------------------------------------------------------------
+[-HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.bat\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; cmd files
+; ----------------------------------------------------------------
+[-HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.cmd\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; PowerShell files
+; ----------------------------------------------------------------
+[-HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; reg files
+; ----------------------------------------------------------------
+[-HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.reg\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; Open cmd on directory from folder background context menu
+; ----------------------------------------------------------------
+[-HKEY_CLASSES_ROOT\Directory\Background\shell\AdvancedRun]
+
+; ----------------------------------------------------------------
+; Open cmd on directory from folder context menu
+; ----------------------------------------------------------------
+[-HKEY_CLASSES_ROOT\Directory\shell\AdvancedRun]

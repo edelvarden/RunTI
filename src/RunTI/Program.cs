@@ -68,17 +68,17 @@ namespace RunTI
             {
                 for (int i = 0; i < args.Length; i++)
                 {
-                    string arg = args[i].ToLower();
+                    string arg = args[i];
 
-                    if ((arg == "-e" || arg == "--exec"))
+                    if ((arg == "/EXEFilename"))
                     {
                         exe = args[++i];
                     }
-                    if ((arg == "-c" || arg == "--command"))
+                    if ((arg == "/CommandLine"))
                     {
                         arguments = args[++i];
                     }
-                    if ((arg == "-d" || arg == "--directory"))
+                    if ((arg == "/StartDirectory"))
                     {
                         dirPath = args[++i];
                     }
@@ -113,9 +113,12 @@ namespace RunTI
 
             if (StartTiService())
             {
+                string command = $" /SwitchTI /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
+
+                //MessageBox.Show(command);
+
                 LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true,
-                    Application.ExecutablePath,
-                    $" /SwitchTI /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}"); //ARGUMENTS
+                    Application.ExecutablePath, command); //ARGUMENTS
             }
         }
 

@@ -10,6 +10,23 @@ Adding these context menu options allows you to modify system behavior and poten
 
 ## Installation
 
+This script will install `RunTI` to the Windows root directory  and add context menu options visible only with the **Shift** key
+```powershell
+PowerShell -ExecutionPolicy Unrestricted -Command "iwr https://raw.githubusercontent.com/edelvarden/RunTI/main/install_with_shift.ps1 -useb | iex"
+```
+
+This script will install `RunTI` to the Windows root directory and add context menu options
+```powershell
+PowerShell -ExecutionPolicy Unrestricted -Command "iwr https://raw.githubusercontent.com/edelvarden/RunTI/main/install.ps1 -useb | iex"
+```
+
+This script will remove `RunTI` from the Windows root directory and these context menu options
+```powershell
+PowerShell -ExecutionPolicy Unrestricted -Command "iwr https://raw.githubusercontent.com/edelvarden/RunTI/main/remove.ps1 -useb | iex"
+```
+
+## Manual Installation
+
 1. Download `RunTI.exe` from [releases](https://github.com/edelvarden/RunTI/releases/latest).
 2. Move it to the Windows root directory `C:\Windows`.
 3. To add context menu options, **Merge** the appropriate variant:

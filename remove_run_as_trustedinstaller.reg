@@ -39,3 +39,9 @@ Windows Registry Editor Version 5.00
 ; Open cmd on directory from folder context menu
 ; ----------------------------------------------------------------
 [-HKEY_CLASSES_ROOT\Directory\shell\AdvancedRun]
+
+
+; ----------------------------------------------------------------
+; Toggle network
+; ----------------------------------------------------------------
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network]

@@ -42,3 +42,4 @@ To remove these options, merge `remove_run_as_trustedinstaller.reg`.
 | Run as TrustedInstaller         | Adds this option for `.exe`, `.bat`, `.cmd`, and `.ps1` files to open with elevated privileges. |
 | Merge as TrustedInstaller       | Adds this option for `.reg` files to merge into system-protected directories. Use with caution. |
 | Open in CMD as TrustedInstaller | Adds this option for folder and folder background context menus to open folder path in cmd.     |
+| Network | Adds this option for desktop background context menu to enable/disable network connection.     |

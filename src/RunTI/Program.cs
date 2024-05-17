@@ -5,6 +5,8 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace RunTI
 {
@@ -16,6 +18,54 @@ namespace RunTI
         [STAThread]
         static void Main(string[] args)
         {
+
+            if (args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    string arg = args[i];
+
+                    if (arg == "/DisableNetwork")
+                    {
+                        toggleAdapters(true);
+                        return;
+                    }
+                    else if (arg == "/EnableNetwork")
+                    {
+                        toggleAdapters(false);
+                        return;
+                    }
+                }
+            }
+                
+            void toggleAdapters(bool isDisabled = false)
+            {
+                toggleAdapter("Ethernet", isDisabled);
+                toggleAdapter("Ethernet0", isDisabled);
+            }
+
+            void toggleAdapter(string interfaceName, bool isDisabled)
+            {
+                string status = isDisabled ? "disable" : "enable";
+                try
+                {
+                    System.Diagnostics.ProcessStartInfo psi =
+                       new System.Diagnostics.ProcessStartInfo
+                       {
+                           FileName = "netsh",
+                           Arguments = String.Format("interface set interface \"{0}\" {1}", interfaceName, status),
+                           UseShellExecute = false,
+                           CreateNoWindow = true,
+                           RedirectStandardOutput = true,
+                       };
+                    System.Diagnostics.Process p = new System.Diagnostics.Process();
+                    p.StartInfo = psi;
+                    p.Start();
+                }
+                catch { }
+                
+            }
+
 #if UACB
             if (!(args.Length > 0))
             {
@@ -38,6 +88,8 @@ namespace RunTI
             else
                 LaunchWithParams(args);
         }
+
+
 
 #if UACB
         static void Bypass()

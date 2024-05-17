@@ -1,7 +1,9 @@
 # RunTI
 
 `/EXEFilename` - the name of the executable file that will be launched
+
 `/CommandLine` - the command-line arguments to be passed to the executable
+
 `/StartDirectory` - the directory path from which the executable will be run
 
 ## Open Command Prompt in a Specific Directory

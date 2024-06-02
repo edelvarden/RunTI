@@ -63,6 +63,7 @@ function Invoke-Instalation {
     Write-Host "Done. Successfully downloaded."
 
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/run_as_trustedinstaller_with_shift.reg"
+    Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/toggle_network.reg"
   }
   catch {
     Write-Warning "Failed to download the file: $_"

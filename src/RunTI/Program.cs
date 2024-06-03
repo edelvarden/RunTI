@@ -19,6 +19,15 @@ namespace RunTI
         static void Main(string[] args)
         {
 
+            if (args.Length == 0) {
+                Console.WriteLine("No arguments, for more information use /help");
+                return;
+            }else if(args[0].ToLower() == "/help")
+            {
+                DisplayHelpMessage();
+                return;
+            }
+
             if (args.Length > 0)
             {
                 for (int i = 0; i < args.Length; i++)
@@ -30,6 +39,7 @@ namespace RunTI
                         toggleAdapters(true);
                         return;
                     }
+
                     else if (arg == "/EnableNetwork")
                     {
                         toggleAdapters(false);
@@ -114,6 +124,20 @@ namespace RunTI
         }
 #endif
 
+        static void DisplayHelpMessage()
+        {
+            Console.WriteLine("");
+            Console.WriteLine("/EXEFilename\t\tName of the executable.");
+            Console.WriteLine("/CommandLine\t\tArguments for the executable.");
+            Console.WriteLine("/StartDirectory\t\tDirectory where the executable starts.");
+            Console.WriteLine("/NoWindow\t\tStart the executable without any windows (useful for silent script running).");
+            Console.WriteLine("");
+            Console.WriteLine("/DisableNetwork\t\tDisable network connection.");
+            Console.WriteLine("/EnableNetwork\t\tEnable network connection.");
+            Console.WriteLine("");
+            Console.WriteLine("/DestroyFileOrFolder\tDestroy file or folder without confirmation and without moving to recycle bin.");
+        }
+
         static void LaunchWithParams(string[] args)
         {
             var exe = "cmd.exe";
@@ -177,8 +201,10 @@ namespace RunTI
             }
         }
 
-        public static void DestroyFileOrFolder(string filePath)
+        public static void DestroyFileOrFolder(string path)
         {
+            bool isDirectory = Directory.Exists(path);
+            bool isFile = File.Exists(path);
 
             string dirPath = "";
             if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath))
@@ -194,12 +220,16 @@ namespace RunTI
             }
 
             string exe = "powershell.exe";
-            string arguments = $"-Command \"Remove-Item -Path " + @"\" + $"\"{filePath.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Recurse -Force -ErrorAction SilentlyContinue\"";
+            string arguments = $"-NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Force -ErrorAction SilentlyContinue\"";
+            if (isDirectory)
+            {
+                arguments = $"-NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Recurse -Force -ErrorAction SilentlyContinue\"";
+            }
 
             if (StartTiService())
             {
                 string command = $" /SwitchTI /NoWindow /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
-                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, isWindow: true);
+                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, false);
             }
 
         }

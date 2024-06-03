@@ -1,0 +1,70 @@
+name: Release .NET Framework App
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "src/RunTI/Properties/AssemblyInfo.cs" # Trigger workflow on changes in AssemblyInfo.cs
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: write
+
+    runs-on: windows-2022
+
+    env:
+      Solution_Name: src/RunTI.sln
+      Project_Path: src/RunTI/RunTI.csproj
+      Assembly_Path: src/RunTI/Properties/AssemblyInfo.cs
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1
+      with:
+        msbuild-architecture: x64
+
+    - name: Restore the application
+      run: msbuild ${{ env.Solution_Name }} /t:restore
+
+    - name: Before Build Command
+      run: msbuild ${{ env.Solution_Name }} /p:Configuration=Release
+
+    - name: Build the application in Release mode
+      run: msbuild ${{ env.Project_Path }} /t:Publish /p:Configuration=Release /p:OutputPath=src/RunTI/bin/Release
+
+    - name: Get version from AssemblyInfo.cs
+      id: get_version
+      shell: pwsh
+      run: |
+        $assemblyInfoPath = "${{ env.Assembly_Path }}"
+        $assemblyInfoContent = Get-Content $assemblyInfoPath -Raw
+        $versionPattern = '\[assembly: AssemblyVersion\("(\d+\.\d+\.\d+\.\d+)"\)\]'
+        $versionMatch = [regex]::Match($assemblyInfoContent, $versionPattern)
+        $assemblyVersion = $versionMatch.Groups[1].Value
+
+        $VERSION = $assemblyVersion
+        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Create version tag
+      shell: pwsh
+      run: |
+        $tagName = "v$env:VERSION"
+        echo "TAG_NAME=$tagName" | Out-File -FilePath $env:GITHUB_ENV -Append
+        git tag $tagName
+        git push origin $tagName
+
+    - name: Create and Publish Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ env.TAG_NAME }}
+        name: ${{ env.TAG_NAME }}
+        files: src/RunTI/bin/Release/RunTI.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

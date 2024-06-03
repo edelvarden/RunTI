@@ -26,7 +26,7 @@ namespace RunTI
                     bool OfActiveSessionOnly,
                     string ExeToRun,
                     string Arguments,
-                    bool isWindow,
+                    bool isWindow = true,
                     string WorkingDir = "")
         {
             List<int> PIDs = new List<int>();
@@ -46,7 +46,7 @@ namespace RunTI
 			int ProcessID,
 			string ExeToRun,
 			string Arguments,
-            bool isWindow,
+            bool isWindow = true,
             string WorkingDir = "")
 		{
 			try

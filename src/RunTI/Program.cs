@@ -38,7 +38,6 @@ namespace RunTI
 
                     if(arg == "/DestroyFileOrFolder")
                     {
-                        //MessageBox.Show($"{ String.Join(" ", args).Replace("/DestroyFileOrFolder ", "")}");
                         var path = String.Join(" ", args).Replace("/DestroyFileOrFolder ", "");
                         DestroyFileOrFolder(path); 
                         return;
@@ -169,9 +168,11 @@ namespace RunTI
                 }
             }
 
+            string isWindowString = isWindow ? "" : " /NoWindow";
+
             if (StartTiService())
             {
-                string command = $" /SwitchTI /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
+                string command = $" /SwitchTI{isWindowString} /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
                 LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, isWindow);
             }
         }
@@ -195,9 +196,6 @@ namespace RunTI
             string exe = "powershell.exe";
             string arguments = $"-Command \"Remove-Item -Path " + @"\" + $"\"{filePath.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Recurse -Force -ErrorAction SilentlyContinue\"";
 
-            MessageBox.Show($"{arguments}");
-            Console.WriteLine(arguments );
-            
             if (StartTiService())
             {
                 string command = $" /SwitchTI /NoWindow /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
@@ -216,8 +214,6 @@ namespace RunTI
             string CmdLine = Environment.CommandLine;
             
             bool isWindow = CmdLine.ToLower().IndexOf("/nowindow") == -1;
-
-            MessageBox.Show($"{CmdLine} | {isWindow}");
             int iToRun = CmdLine.ToLower().IndexOf("/run:");
             if (iToRun != -1)
             {

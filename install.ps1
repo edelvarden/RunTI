@@ -64,6 +64,7 @@ function Invoke-Instalation {
 
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/run_as_trustedinstaller.reg"
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/toggle_network.reg"
+    Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/destroy.reg"
   }
   catch {
     Write-Warning "Failed to download the file: $_"

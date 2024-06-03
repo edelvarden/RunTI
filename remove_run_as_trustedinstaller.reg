@@ -45,3 +45,9 @@ Windows Registry Editor Version 5.00
 ; Toggle network
 ; ----------------------------------------------------------------
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network]
+
+
+; ----------------------------------------------------------------
+; Destroy file or folder
+; ----------------------------------------------------------------
+[-HKEY_CLASSES_ROOT\Directory\shell\Destroy]

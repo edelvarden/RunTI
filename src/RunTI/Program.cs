@@ -211,11 +211,18 @@ namespace RunTI
             }
 
             string exe = "powershell.exe";
-            string arguments = $"-NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Force -ErrorAction SilentlyContinue\"";
+            string arguments = "-NoProfile -NoLogo -ExecutionPolicy Unrestricted";
+
+            string deleteCommand = $"-Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\""; // format path to \"path\"
+
             if (isDirectory)
             {
-                arguments = $"-NoProfile -NoLogo -ExecutionPolicy Unrestricted -Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Recurse -Force -ErrorAction SilentlyContinue\"";
+                deleteCommand += " -Recurse";
             }
+
+            deleteCommand += " -Force -ErrorAction SilentlyContinue\"";
+
+            arguments = arguments + " " + deleteCommand;
 
             if (StartTiService())
             {

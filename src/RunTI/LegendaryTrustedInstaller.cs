@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using static RunTI.NativeMethods;
 
 //Readapted from https://github.com/Raymai97/SuperCMD
@@ -17,32 +18,36 @@ namespace RunTI
 		static IntPtr hProc, hToken, hDupToken, pEnvBlock;
         public static bool ForceTokenUseActiveSessionID;
 
+        const int STARTF_USESHOWWINDOW = 0x00000001;
+        const short SW_HIDE = 0;
+
         public static void RunWithTokenOf(
-			string ProcessName,
-			bool OfActiveSessionOnly,
-			string ExeToRun, 
-			string Arguments,
-			string WorkingDir = "")
-		{
-			List<int> PIDs = new List<int>();
-			foreach (Process p in Process.GetProcessesByName(
-				Path.GetFileNameWithoutExtension(ProcessName)))
-			{
-				PIDs.Add(p.Id);
+                    string ProcessName,
+                    bool OfActiveSessionOnly,
+                    string ExeToRun,
+                    string Arguments,
+                    bool isWindow,
+                    string WorkingDir = "")
+        {
+            List<int> PIDs = new List<int>();
+            foreach (Process p in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(ProcessName)))
+            {
+                PIDs.Add(p.Id);
                 break;
-			}
+            }
 
-			if (PIDs.Count == 0)
-				return;
+            if (PIDs.Count == 0)
+                return;
 
-			RunWithTokenOf(PIDs[0], ExeToRun, Arguments, WorkingDir);
-		}
+            RunWithTokenOf(PIDs[0], ExeToRun, Arguments, isWindow, WorkingDir);
+        }
 
-		public static void RunWithTokenOf(
+        public static void RunWithTokenOf(
 			int ProcessID,
 			string ExeToRun,
 			string Arguments,
-			string WorkingDir = "")
+            bool isWindow,
+            string WorkingDir = "")
 		{
 			try
 			{
@@ -128,6 +133,13 @@ namespace RunTI
 				SI = new STARTUPINFO();
 				SI.cb = Marshal.SizeOf(SI);
 				SI.lpDesktop = "winsta0\\default";
+
+				if (!isWindow)
+				{
+					SI.dwFlags = STARTF_USESHOWWINDOW;
+					SI.wShowWindow = SW_HIDE;
+				}
+
 				PI = new PROCESSINFO();
 
 				// CreateProcessWithTokenW doesn't work in Safe Mode

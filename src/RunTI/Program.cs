@@ -35,6 +35,14 @@ namespace RunTI
                         toggleAdapters(false);
                         return;
                     }
+
+                    if(arg == "/DestroyFileOrFolder")
+                    {
+                        //MessageBox.Show($"{ String.Join(" ", args).Replace("/DestroyFileOrFolder ", "")}");
+                        var path = String.Join(" ", args).Replace("/DestroyFileOrFolder ", "");
+                        DestroyFileOrFolder(path); 
+                        return;
+                    }
                 }
             }
                 
@@ -76,7 +84,6 @@ namespace RunTI
             {
                 //This exposes to 34987567834598345 bugs so don't use UACSkip pls
                 List<string> b = new List<string>(args);
-
                 var pos = b.IndexOf("/SwitchTI");
                 if (pos == -1)
                     args = new string[0];
@@ -88,8 +95,6 @@ namespace RunTI
             else
                 LaunchWithParams(args);
         }
-
-
 
 #if UACB
         static void Bypass()
@@ -115,6 +120,7 @@ namespace RunTI
             var exe = "cmd.exe";
             var arguments = "";
             var dirPath = "";
+            var isWindow = true;
 
             if (args.Length > 0)
             {
@@ -134,21 +140,22 @@ namespace RunTI
                     {
                         dirPath = args[++i];
                     }
+                    if ((arg == "/NoWindow"))
+                    {
+                        isWindow = false;
+                    }
                 }
-
-                //MessageBox.Show($"Unknown or duplicate argument!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // Support for running msc's like /EXEFilename (services.msc, gpedit.msc)
                 if (exe.Split('.').Last() == "msc")
                 {
                     arguments = $"/s {exe}";
                     exe = "mmc.exe";
-                    
                 }
+            }else
+            {
+                return; // exit without args
             }
-            //MessageBox.Show(exe);
-            //MessageBox.Show(arguments);
-            //MessageBox.Show(dirPath);
 
             if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath.Replace("\"", "")))
             {
@@ -162,16 +169,41 @@ namespace RunTI
                 }
             }
 
-
             if (StartTiService())
             {
                 string command = $" /SwitchTI /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
-
-                //MessageBox.Show(command);
-
-                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true,
-                    Application.ExecutablePath, command); //ARGUMENTS
+                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, isWindow);
             }
+        }
+
+        public static void DestroyFileOrFolder(string filePath)
+        {
+
+            string dirPath = "";
+            if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath))
+            {
+                try
+                {
+                    dirPath = Environment.CurrentDirectory;
+                }
+                catch (Exception)
+                {
+                    dirPath = "";
+                }
+            }
+
+            string exe = "powershell.exe";
+            string arguments = $"-Command \"Remove-Item -Path \'{filePath.TrimStart('"').TrimEnd('"')}\' -Recurse -Force -ErrorAction SilentlyContinue\"";
+
+            MessageBox.Show($"{arguments}");
+            Console.WriteLine(arguments );
+            
+            if (StartTiService())
+            {
+                string command = $" /SwitchTI /NoWindow /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
+                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, isWindow: true);
+            }
+
         }
 
         static void ParseCmdLine(string[] args)
@@ -182,6 +214,10 @@ namespace RunTI
             // and that will influence the other argument too :(
             // so I need to do it myself :/
             string CmdLine = Environment.CommandLine;
+            
+            bool isWindow = CmdLine.ToLower().IndexOf("/nowindow") == -1;
+
+            MessageBox.Show($"{CmdLine} | {isWindow}");
             int iToRun = CmdLine.ToLower().IndexOf("/run:");
             if (iToRun != -1)
             {
@@ -237,8 +273,7 @@ namespace RunTI
             }
 
             LegendaryTrustedInstaller.ForceTokenUseActiveSessionID = true;
-            LegendaryTrustedInstaller.RunWithTokenOf("TrustedInstaller.exe", false,
-                ExeToRun, Arguments, WorkingDir);
+            LegendaryTrustedInstaller.RunWithTokenOf("TrustedInstaller.exe", false, ExeToRun, Arguments, isWindow, WorkingDir);
         }
 
         public static bool StartTiService()

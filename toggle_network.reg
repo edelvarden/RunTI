@@ -6,7 +6,7 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network]
 "MUIVerb"="Network"
 "Icon"="shell32.dll,17"
-"Position"="Middle"
+"Position"="Bottom"
 "SubCommands"=""
 
 ; Reboot computer without confirmation

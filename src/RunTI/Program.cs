@@ -19,51 +19,39 @@ namespace RunTI
         static void Main(string[] args)
         {
 
-            if (args.Length == 0) {
+            if (args.Length == 0)
+            {
                 Console.WriteLine("No arguments, for more information use /help");
                 return;
-            }else if(args[0].ToLower() == "/help")
-            {
-                DisplayHelpMessage();
-                return;
             }
 
-            if (args.Length > 0)
+            switch (args[0].ToLower())
             {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    string arg = args[i];
-
-                    if (arg == "/DisableNetwork")
-                    {
-                        toggleAdapters(true);
-                        return;
-                    }
-
-                    else if (arg == "/EnableNetwork")
-                    {
-                        toggleAdapters(false);
-                        return;
-                    }
-
-                    if(arg == "/DestroyFileOrFolder")
-                    {
-                        var path = String.Join(" ", args).Replace("/DestroyFileOrFolder ", "");
-                        DestroyFileOrFolder(path); 
-                        return;
-                    }
-                }
+                case "/help":
+                    DisplayHelpMessage();
+                    return;
+                case "/disablenetwork":
+                    ToggleAdapters(false);
+                    return;
+                case "/enablenetwork":
+                    ToggleAdapters(true);
+                    return;
+                case "/destroyfileorfolder":
+                    DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
+                    return;
+                default:
+                    break;
             }
                 
-            void toggleAdapters(bool isDisabled = false)
+            void ToggleAdapters(bool isEnabled = true)
             {
-                toggleAdapter("Ethernet", isDisabled);
-                toggleAdapter("Ethernet0", isDisabled);
+                ToggleAdapter("Ethernet", isEnabled);
+                ToggleAdapter("Ethernet0", isEnabled);
             }
 
-            void toggleAdapter(string interfaceName, bool isDisabled)
+            void ToggleAdapter(string interfaceName, bool isEnabled)
             {
-                string status = isDisabled ? "disable" : "enable";
+                string status = isEnabled ? "enable" : "disable";
                 try
                 {
                     System.Diagnostics.ProcessStartInfo psi =
@@ -140,44 +128,47 @@ namespace RunTI
 
         static void LaunchWithParams(string[] args)
         {
-            var exe = "cmd.exe";
-            var arguments = "";
-            var dirPath = "";
-            var isWindow = true;
+            string exe = "cmd.exe";
+            string arguments = "";
+            string dirPath = "";
+            bool isWindow = true;
 
-            if (args.Length > 0)
+            for (int i = 0; i < args.Length; i++)
             {
-                for (int i = 0; i < args.Length; i++)
+                switch (args[i].ToLower())
                 {
-                    string arg = args[i];
-
-                    if ((arg == "/EXEFilename"))
-                    {
+                    case "/exefilename":
                         exe = args[++i];
-                    }
-                    if ((arg == "/CommandLine"))
-                    {
+                        break;
+                    case "/commandline":
                         arguments = args[++i];
-                    }
-                    if ((arg == "/StartDirectory"))
-                    {
+                        break;
+                    case "/startdirectory":
                         dirPath = args[++i];
-                    }
-                    if ((arg == "/NoWindow"))
-                    {
+                        break;
+                    case "/nowindow":
                         isWindow = false;
-                    }
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown argument: {args[i]}");
+                        return;
                 }
+            }
 
-                // Support for running msc's like /EXEFilename (services.msc, gpedit.msc)
-                if (exe.Split('.').Last() == "msc")
-                {
-                    arguments = $"/s {exe}";
-                    exe = "mmc.exe";
-                }
-            }else
+            // Make exe a required parameter
+            if (string.IsNullOrWhiteSpace(exe))
             {
-                return; // exit without args
+                Console.WriteLine("Error: /EXEFilename is a required parameter.");
+                return;
+            }
+
+            // Launch services such as services.msc or gpedit.msc from mmc.exe
+            if (exe.Split('.').Last() == "msc")
+            {
+                // mmc.exe /s services.msc
+                string serviceName = exe;
+                arguments = $"/s {serviceName}";
+                exe = "mmc.exe";
             }
 
             if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath.Replace("\"", "")))

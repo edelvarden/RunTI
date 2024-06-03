@@ -193,7 +193,7 @@ namespace RunTI
             }
 
             string exe = "powershell.exe";
-            string arguments = $"-Command \"Remove-Item -Path \'{filePath.TrimStart('"').TrimEnd('"')}\' -Recurse -Force -ErrorAction SilentlyContinue\"";
+            string arguments = $"-Command \"Remove-Item -Path " + @"\" + $"\"{filePath.TrimStart('"').TrimEnd('"')}" + @"\" + "\" -Recurse -Force -ErrorAction SilentlyContinue\"";
 
             MessageBox.Show($"{arguments}");
             Console.WriteLine(arguments );

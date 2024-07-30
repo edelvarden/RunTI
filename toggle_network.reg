@@ -1,7 +1,7 @@
 Windows Registry Editor Version 5.00
 
 ; ----------------------------------------------------------------
-; Toggle network
+; Toggle Network
 ; ----------------------------------------------------------------
 [HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network]
 "MUIVerb"="Network"
@@ -9,7 +9,7 @@ Windows Registry Editor Version 5.00
 "Position"="Bottom"
 "SubCommands"=""
 
-; Reboot computer without confirmation
+; Disable network without confirmation
 [HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network\shell\00DisableNetwork]
 "MUIVerb"="Disable"
 
@@ -17,7 +17,7 @@ Windows Registry Editor Version 5.00
 @="RunTI.exe /DisableNetwork"
 
 
-; Shutdown computer without confirmation
+; Enable network without confirmation
 [HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network\shell\01EnableNetwork]
 "MUIVerb"="Enable"
 

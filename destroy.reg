@@ -5,7 +5,7 @@ Windows Registry Editor Version 5.00
 ; ----------------------------------------------------------------
 [HKEY_CLASSES_ROOT\Directory\shell\Destroy]
 @="Destroy"
-"icon"="\"%SystemRoot%\\System32\\imageres.dll\",84"
+"Icon"="\"%SystemRoot%\\System32\\imageres.dll\",84"
 
 [HKEY_CLASSES_ROOT\Directory\shell\Destroy\command]
 @="RunTI.exe /DestroyFileOrFolder \\\"%1\\\""
@@ -16,7 +16,7 @@ Windows Registry Editor Version 5.00
 ; ----------------------------------------------------------------
 [HKEY_CLASSES_ROOT\*\shell\Destroy]
 @="Destroy"
-"icon"="\"%SystemRoot%\\System32\\imageres.dll\",84"
+"Icon"="\"%SystemRoot%\\System32\\imageres.dll\",84"
 
 [HKEY_CLASSES_ROOT\*\shell\Destroy\command]
 @="RunTI.exe /DestroyFileOrFolder \\\"%1\\\""

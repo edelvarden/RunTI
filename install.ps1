@@ -37,9 +37,6 @@ function Invoke-MargeRegFile {
     # Merge the .reg file silently
     Start-Process regedit -ArgumentList "/s", $tempFile -Wait
 
-    # Clean up temporary file
-
-
     Write-Host "Registry changes merged successfully."
   }
   catch {

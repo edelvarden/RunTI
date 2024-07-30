@@ -194,43 +194,22 @@ namespace RunTI
 
         public static void DestroyFileOrFolder(string path)
         {
-            bool isDirectory = Directory.Exists(path);
-            bool isFile = File.Exists(path);
-
-            string dirPath = "";
-            if (string.IsNullOrWhiteSpace(dirPath) || !Directory.Exists(dirPath))
-            {
-                try
-                {
-                    dirPath = Environment.CurrentDirectory;
-                }
-                catch (Exception)
-                {
-                    dirPath = "";
-                }
-            }
-
             string exe = "powershell.exe";
             string arguments = "-NoProfile -NoLogo -ExecutionPolicy Unrestricted";
 
-            string deleteCommand = $"-Command \"Remove-Item -Path " + @"\" + $"\"{path.TrimStart('"').TrimEnd('"')}" + @"\" + "\""; // format path to \"path\"
+            string deleteCommand = $"-Command \"Remove-Item -Path " + @"\" + $"\"{path.Trim().TrimStart('"').TrimEnd('"')}" + @"\" + "\""; // format path to \"path\"
 
-            if (isDirectory)
-            {
-                deleteCommand += " -Recurse";
-            }
+            deleteCommand += " -Recurse -Force -ErrorAction SilentlyContinue\"";
 
-            deleteCommand += " -Force -ErrorAction SilentlyContinue\"";
-
-            arguments = arguments + " " + deleteCommand;
+            arguments += " " + deleteCommand;
 
             if (StartTiService())
             {
-                string command = $" /SwitchTI /NoWindow /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
+                string command = $"/SwitchTI /NoWindow /Dir:\"{Environment.CurrentDirectory.Replace(@"\", @"\\")}\" /Run:\"{exe}\" {arguments}";
                 LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, false);
             }
-
         }
+
 
         static void ParseCmdLine(string[] args)
         {

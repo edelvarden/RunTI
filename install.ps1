@@ -59,6 +59,10 @@ function Invoke-Instalation {
     (New-Object System.Net.WebClient).DownloadFile($downloadUrl, (Join-Path $env:SystemRoot $fileName))
     Write-Host "Done. Successfully downloaded."
 
+    # Before installation: Remove the current version if it exists
+    Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/remove_run_as_trustedinstaller.reg"
+
+    # Add context menu options
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/run_as_trustedinstaller.reg"
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/toggle_network.reg"
     Invoke-MargeRegFile -Url "https://raw.githubusercontent.com/edelvarden/RunTI/main/destroy.reg"

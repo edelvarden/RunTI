@@ -1,43 +1,35 @@
 # Define paths
 $exePath = "$PSScriptRoot\bin\Release\RunTI.exe"
-$testFile1 = "$PSScriptRoot\tests\test1.txt"
-$testFolder2 = "$PSScriptRoot\tests\test2"
-$testFolder3 = "$PSScriptRoot\tests\test3"
-$testFile3 = "$testFolder3\test3.txt"
-$testFolder4 = "$PSScriptRoot\tests\test4"
-$testFile4 = "$testFolder4\test4.txt"
-$testFolder5 = "$PSScriptRoot\tests\test5"
-$testFile5 = "$testFolder5\test5.txt"
 
 # Create test files and folders
-New-Item -Path $testFile1 -ItemType File -Force | Out-Null
-New-Item -Path $testFolder2 -ItemType Directory -Force | Out-Null
-New-Item -Path $testFolder3 -ItemType Directory -Force | Out-Null
-New-Item -Path $testFile3 -ItemType File -Force | Out-Null
-New-Item -Path $testFolder4 -ItemType Directory -Force | Out-Null
-New-Item -Path $testFile4 -ItemType File -Force | Out-Null
-New-Item -Path $testFolder5 -ItemType Directory -Force | Out-Null
-New-Item -Path $testFile5 -ItemType File -Force | Out-Null
+function Create-Items {
+    param (
+        [string]$filePath,
+        [string]$folderPath
+    )
+    if ($filePath) {
+        New-Item -Path $filePath -ItemType File -Force | Out-Null
+    }
+    if ($folderPath) {
+        New-Item -Path $folderPath -ItemType Directory -Force | Out-Null
+    }
+}
 
-# Set admin rights on testFolder4: only administrators can delete
-$acl = Get-Acl $testFolder4
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.SetAccessRule($rule)
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.SetAccessRule($rule)
-Set-Acl $testFolder4 $acl
+# Function to set permissions
+function Set-Permissions {
+    param (
+        [string]$Path,
+        [string]$Principal
+    )
 
-cmd /c takeown /f $testFolder4 /r /d y
+    $acl = Get-Acl $Path
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($rule)
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("$Principal", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($rule)
+    Set-Acl $Path $acl
+}
 
-# Set system rights on testFolder5: only SYSTEM can delete
-$acl = Get-Acl $testFolder5
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.SetAccessRule($rule)
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.SetAccessRule($rule)
-Set-Acl $testFolder5 $acl
-
-cmd /c takeown /f $testFolder5 /r /d y
 
 # Function to check if a path exists with a delay
 function Test-PathExists {
@@ -56,59 +48,128 @@ function Run-DestroyCommand {
     & $exePath /DestroyFileOrFolder $path
 }
 
-# Test destroying each item
-$allTestsPassed = $true
-
-# Test 1: Destroy file
-Run-DestroyCommand $testFile1
-if (Test-PathExists $testFile1) {
-    Write-Host -ForegroundColor Red "Test 1 failed: File $testFile1 still exists."
-    $allTestsPassed = $false
-} else {
-    Write-Host -ForegroundColor Green "Test 1 passed: File $testFile1 was successfully destroyed."
+# Define and run test cases
+function Test-1 {
+    $filePath = "$PSScriptRoot\tests\Test 1.txt"
+    Create-Items -filePath $filePath
+    Run-DestroyCommand -path $filePath
+    if (Test-PathExists -path $filePath) {
+        Write-Host -ForegroundColor Red "Test 1 failed: File $filePath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 1 passed: File $filePath was successfully destroyed."
+    }
 }
 
-# Test 2: Destroy empty folder
-Run-DestroyCommand $testFolder2
-if (Test-PathExists $testFolder2) {
-    Write-Host -ForegroundColor Red "Test 2 failed: Folder $testFolder2 still exists."
-    $allTestsPassed = $false
-} else {
-    Write-Host -ForegroundColor Green "Test 2 passed: Folder $testFolder2 was successfully destroyed."
+function Test-2 {
+    $folderPath = "$PSScriptRoot\tests\Test 2"
+    Create-Items -folderPath $folderPath
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 2 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 2 passed: Folder $folderPath was successfully destroyed."
+    }
 }
 
-# Test 3: Destroy folder with file
-Run-DestroyCommand $testFolder3
-if (Test-PathExists $testFolder3) {
-    Write-Host -ForegroundColor Red "Test 3 failed: Folder $testFolder3 still exists."
-    $allTestsPassed = $false
-} else {
-    Write-Host -ForegroundColor Green "Test 3 passed: Folder $testFolder3 was successfully destroyed."
+function Test-3 {
+    $folderPath = "$PSScriptRoot\tests\Test 3"
+    $filePath = Join-Path -Path $folderPath -ChildPath "Test 3.txt"
+    Create-Items -folderPath $folderPath -filePath $filePath
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 3 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 3 passed: Folder $folderPath was successfully destroyed."
+    }
 }
 
-# Test 4: Destroy folder with admin rights
-Run-DestroyCommand $testFolder4
-if (Test-PathExists $testFolder4) {
-    Write-Host -ForegroundColor Red "Test 4 failed: Folder $testFolder4 still exists."
-    $allTestsPassed = $false
-} else {
-    Write-Host -ForegroundColor Green "Test 4 passed: Folder $testFolder4 was successfully destroyed."
+function Test-4 {
+    $filePath = "$PSScriptRoot\tests\Test 4.txt"
+    Create-Items -filePath $filePath
+    Set-Permissions -path $filePath -principal "Administrators"
+    Run-DestroyCommand -path $filePath
+    if (Test-PathExists -path $filePath) {
+        Write-Host -ForegroundColor Red "Test 4 failed: File $filePath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 4 passed: File $filePath was successfully destroyed."
+    }
 }
 
-# Test 5: Destroy folder with system rights
-Run-DestroyCommand $testFolder5
-if (Test-PathExists $testFolder5) {
-    Write-Host -ForegroundColor Red "Test 5 failed: Folder $testFolder5 still exists."
-    $allTestsPassed = $false
-} else {
-    Write-Host -ForegroundColor Green "Test 5 passed: Folder $testFolder5 was successfully destroyed."
+function Test-5 {
+    $folderPath = "$PSScriptRoot\tests\Test 5"
+    Create-Items -folderPath $folderPath
+    Set-Permissions -path $folderPath -principal "Administrators"
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 5 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 5 passed: Folder $folderPath was successfully destroyed."
+    }
 }
+
+function Test-6 {
+    $folderPath = "$PSScriptRoot\tests\Test 6"
+    $filePath = Join-Path -Path $folderPath -ChildPath "Test 6.txt"
+    Create-Items -folderPath $folderPath -filePath $filePath
+    Set-Permissions -path $folderPath -principal "Administrators"
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 6 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 6 passed: Folder $folderPath was successfully destroyed."
+    }
+}
+
+function Test-7 {
+    $folderPath = "$PSScriptRoot\tests\Test 7"
+    $filePath = Join-Path -Path $folderPath -ChildPath "Test 8.txt"
+    Create-Items -filePath $filePath
+    Set-Permissions -path $folderPath -principal "SYSTEM"
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 7 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 7 passed: Folder $folderPath was successfully destroyed."
+    }
+}
+
+function Test-8 {
+    $folderPath = "$PSScriptRoot\tests\Test 8"
+    Create-Items -folderPath $folderPath
+    Set-Permissions -path $folderPath -principal "SYSTEM"
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 8 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 8 passed: Folder $folderPath was successfully destroyed."
+    }
+}
+
+function Test-9 {
+    $folderPath = "$PSScriptRoot\tests\Test 9"
+    $filePath = Join-Path -Path $folderPath -ChildPath "Test 9.txt"
+    Create-Items -folderPath $folderPath -filePath $filePath
+    Set-Permissions -path $folderPath -principal "SYSTEM"
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "Test 9 failed: Folder $folderPath still exists."
+    } else {
+        Write-Host -ForegroundColor Green "Test 9 passed: Folder $folderPath was successfully destroyed."
+    }
+}
+
+# Execute all tests
+Test-1
+Test-2
+Test-3
+Test-4
+Test-5
+Test-6
+Test-7
+Test-8
+Test-9
 
 # Final result
-if ($allTestsPassed) {
-    Write-Host "All tests passed. The DestroyFileOrFolder function works as expected."
-} else {
-    Write-Host "Some tests failed. Please check the results above."
-}
+Write-Host "All tests executed. Please check the results above."
 
 Pause

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using static RunTI.NativeMethods;
 
 //Readapted from https://github.com/Raymai97/SuperCMD
 
 namespace RunTI
 {
-	class LegendaryTrustedInstaller
+    class LegendaryTrustedInstaller
 	{
 		static STARTUPINFO SI;
 		static PROCESSINFO PI;

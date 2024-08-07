@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.IO;
-using Microsoft.Win32;
-using System.Diagnostics;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Windows.Forms;
 
 namespace RunTI
 {
@@ -31,10 +26,10 @@ namespace RunTI
                     DisplayHelpMessage();
                     return;
                 case "/disablenetwork":
-                    ToggleAdapters(false);
+                    NetworkManager.ToggleAdapters(false);
                     return;
                 case "/enablenetwork":
-                    ToggleAdapters(true);
+                    NetworkManager.ToggleAdapters(true);
                     return;
                 case "/destroyfileorfolder":
                     DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
@@ -43,33 +38,6 @@ namespace RunTI
                     break;
             }
                 
-            void ToggleAdapters(bool isEnabled = true)
-            {
-                ToggleAdapter("Ethernet", isEnabled);
-                ToggleAdapter("Ethernet0", isEnabled);
-            }
-
-            void ToggleAdapter(string interfaceName, bool isEnabled)
-            {
-                string status = isEnabled ? "enable" : "disable";
-                try
-                {
-                    System.Diagnostics.ProcessStartInfo psi =
-                       new System.Diagnostics.ProcessStartInfo
-                       {
-                           FileName = "netsh",
-                           Arguments = String.Format("interface set interface \"{0}\" {1}", interfaceName, status),
-                           UseShellExecute = false,
-                           CreateNoWindow = true,
-                           RedirectStandardOutput = true,
-                       };
-                    System.Diagnostics.Process p = new System.Diagnostics.Process();
-                    p.StartInfo = psi;
-                    p.Start();
-                }
-                catch { }
-                
-            }
 
 #if UACB
             if (!(args.Length > 0))

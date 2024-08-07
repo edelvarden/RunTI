@@ -32,7 +32,7 @@ namespace RunTI
                     NetworkManager.ToggleAdapters(true);
                     return;
                 case "/destroyfileorfolder":
-                    DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
+                    Destroy.DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
                     return;
                 default:
                     break;
@@ -158,49 +158,6 @@ namespace RunTI
                 string command = $" /SwitchTI{isWindowString} /Dir:\"{dirPath.Replace(@"\", @"\\")}\\\" /Run:\"{exe}\" {arguments}";
                 LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, isWindow);
             }
-        }
-
-        public static void DestroyFileOrFolder(string path)
-        {
-            string exe = "powershell.exe";
-            string arguments = "-NoProfile -NoLogo -ExecutionPolicy Unrestricted";
-            string formattedPath = path.Trim().TrimStart('"').TrimEnd('"');
-            string formattedCommandPath = @"\" + $"\"{formattedPath}" + @"\" + "\""; // format path to \"path\"
-
-            string admins = @"\" + $"\"Administrators:(F)" + @"\" + "\""; // \"Administrators:(F)\"
-            string users = @"\" + $"\"Users:(F)" + @"\" + "\""; // \"Users:(F)\"
-            string system = @"\" + $"\"SYSTEM:(F)" + @"\" + "\""; // \"SYSTEM:(F)\"
-            string trustedinstaller = @"\" + $"\"NT SERVICE\\TrustedInstaller:(F)" + @"\" + "\""; // \"NT SERVICE\TrustedInstaller:(F)\"
-
-            string elevatePrivilagesCommand = $"takeown /f {formattedCommandPath}; icacls {formattedCommandPath} /grant {system} /t; icacls {formattedCommandPath} /grant {admins} /t; icacls {formattedCommandPath} /grant {users} /t";
-
-            if (IsDirectory($"{formattedPath}"))
-            {
-                elevatePrivilagesCommand = $"takeown /f {formattedCommandPath} /r /d y; icacls {formattedCommandPath} /grant {system} /t; icacls {formattedCommandPath} /grant {admins} /t; icacls {formattedCommandPath} /grant {users} /t";
-            }
-
-            string deleteCommand = $"-Command \"{elevatePrivilagesCommand}; Remove-Item -Path " + formattedCommandPath;
-
-            deleteCommand += " -Recurse -Force -ErrorAction SilentlyContinue\"";
-
-            arguments += " " + deleteCommand;
-
-            if (StartTiService())
-            {
-                string command = $"/SwitchTI /NoWindow /Dir:\"{Environment.CurrentDirectory.Replace(@"\", @"\\")}\" /Run:\"{exe}\" {arguments}";
-                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, false);
-            }
-        }
-
-        public static bool IsDirectory(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new ArgumentException("Path cannot be null or empty.", nameof(path));
-            }
-
-            FileAttributes attributes = File.GetAttributes(path);
-            return (attributes & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
         static void ParseCmdLine(string[] args)

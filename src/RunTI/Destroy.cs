@@ -9,7 +9,7 @@ namespace RunTI
         public static void DestroyFileOrFolder(string path)
         {
             string exe = "powershell.exe";
-            string arguments = "-NoProfile -NoLogo -ExecutionPolicy Unrestricted";
+            string arguments = "-NoProfile -ExecutionPolicy Unrestricted";
             string formattedPath = path.Trim().TrimStart('"').TrimEnd('"');
             string formattedCommandPath = @"\" + $"\"{formattedPath}" + @"\" + "\""; // format path to \"path\"
 

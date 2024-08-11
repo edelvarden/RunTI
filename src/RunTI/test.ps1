@@ -22,14 +22,31 @@ function Set-Permissions {
         [string]$Principal
     )
 
-    $acl = Get-Acl $Path
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-    $acl.SetAccessRule($rule)
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("$Principal", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-    $acl.SetAccessRule($rule)
-    Set-Acl $Path $acl
-}
+    if (-not (Test-Path $Path)) {
+        Write-Host -ForegroundColor Red "Path does not exist: $Path"
+        return
+    }
 
+    # Get the existing ACL
+    $acl = Get-Acl $Path
+
+    # Define the new owner
+    $owner = New-Object System.Security.Principal.NTAccount($Principal)
+    $acl.SetOwner($owner)
+
+    # Deny permissions to Everyone and Users
+    $denyEveryoneRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Deny")
+    $denyUsersRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Users", "FullControl", "ContainerInherit, ObjectInherit", "None", "Deny")
+    $acl.AddAccessRule($denyEveryoneRule)
+    $acl.AddAccessRule($denyUsersRule)
+    
+    # Allow permissions to the specified principal
+    $allowRule = New-Object System.Security.AccessControl.FileSystemAccessRule($Principal, "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+    $acl.AddAccessRule($allowRule)
+
+    # Apply the updated ACL
+    Set-Acl -Path $Path -AclObject $acl
+}
 
 # Function to check if a path exists with a delay
 function Test-PathExists {

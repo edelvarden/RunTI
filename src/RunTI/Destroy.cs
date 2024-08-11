@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Windows.Forms;
 
 namespace RunTI
 {
@@ -9,84 +8,89 @@ namespace RunTI
     {
         public static void DestroyFileOrFolder(string path)
         {
-            string exe = "powershell.exe";
-            string arguments = "-NoProfile -ExecutionPolicy Unrestricted";
             string formattedPath = path.Trim().TrimStart('"').TrimEnd('"');
-            string formattedCommandPath = @"\" + $"\"{formattedPath}" + @"\" + "\""; // format path to \"path\"
 
-            string group = @"\" + $"\"*S-1-5-32-544:F" + @"\" + "\""; // \"Everyone:(F)\"
-            string everyone = @"\" + $"\"Everyone:(F):(OI)(CI)F" + @"\" + "\""; // \"Everyone:(F)\"
-            string admins = @"\" + $"\"Administrators:(F):(OI)(CI)F" + @"\" + "\""; // \"Administrators:(F)\"
-            string users = @"\" + $"\"Users:(F):(OI)(CI)F" + @"\" + "\""; // \"Users:(F)\"
-            string system = @"\" + $"\"SYSTEM:(F):(OI)(CI)F" + @"\" + "\""; // \"SYSTEM:(F)\"
-            string trustedinstaller = @"\" + $"\"NT SERVICE\\TrustedInstaller:(F):(OI)(CI)F" + @"\" + "\""; // \"NT SERVICE\TrustedInstaller:(F)\"
-
-            string elevatePrivilagesCommand = $"takeown /f {formattedCommandPath};";
-
-            if (IsDirectory($"{formattedPath}"))
+            if (string.IsNullOrWhiteSpace(formattedPath) ||
+                (!File.Exists(formattedPath) && !Directory.Exists(formattedPath)))
             {
-                elevatePrivilagesCommand = $"takeown /f {formattedCommandPath} /r /d y;";
-
-                RunCmdScript($"takeown /f \"{formattedPath}\" /r /d y && icacls \"{formattedPath}\" /grant *S-1-5-32-544:F");
-            }else
-            {
-                RunCmdScript($"takeown /f \"{formattedPath}\" && icacls \"{formattedPath}\" /grant *S-1-5-32-544:F");
+                Console.WriteLine($"Invalid path: {formattedPath}");
+                return;
             }
 
-            elevatePrivilagesCommand +=
-                $"icacls {formattedCommandPath} /setowner SYSTEM /t; " +
-                $"icacls {formattedCommandPath} /grant {system} /t; " +
-                $"icacls {formattedCommandPath} /grant {admins} /t; " +
-                $"icacls {formattedCommandPath} /grant {users} /t; " +
-                $"icacls {formattedCommandPath} /grant {everyone} /t; " +
-                $"icacls {formattedCommandPath} /grant {group} /t";
-
-            string deleteCommand = $"-Command \"{elevatePrivilagesCommand}; Remove-Item -Path {formattedCommandPath} -Recurse -Force -ErrorAction SilentlyContinue\"";
-
-            arguments += " " + deleteCommand;
-
-            if (Program.StartTiService())
+            try
             {
-                string command = $"/SwitchTI /NoWindow /Dir:\"{Environment.CurrentDirectory.Replace(@"\", @"\\")}\" /Run:\"{exe}\" {arguments}";
-                LegendaryTrustedInstaller.RunWithTokenOf("winlogon.exe", true, Application.ExecutablePath, command, false);
-            }
-        }
-
-        private static void RunCmdScript(string script)
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = "cmd",
-                Arguments = $"/c {script}",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            using (Process process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
-
-                if (!string.IsNullOrEmpty(error))
+                // Take ownership and delete directory
+                if (Directory.Exists(formattedPath))
                 {
-                    Console.WriteLine($"Error: {error}");
+                    Takeown(formattedPath, true);
+                    Icacls(formattedPath);
+                    Directory.Delete(formattedPath, true);
+                }
+                // Take ownership and delete file
+                else
+                {
+                    Takeown(formattedPath);
+                    Icacls(formattedPath);
+                    File.Delete(formattedPath);
                 }
             }
+            catch{}
         }
 
-        public static bool IsDirectory(string path)
+        private static void Takeown(string path, bool isDirectory = false)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            string commandArgs = $"/f \"{path}\"";
+            if (isDirectory)
             {
-                throw new ArgumentException("Path cannot be null or empty.", nameof(path));
+                commandArgs += " /r /d y";
             }
 
-            FileAttributes attributes = File.GetAttributes(path);
-            return (attributes & FileAttributes.Directory) == FileAttributes.Directory;
+            try
+            {
+                RunCommand("takeown", commandArgs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing takeown: {ex.Message}");
+            }
+        }
+
+        private static void Icacls(string path)
+        {
+            try
+            {
+                RunCommand("icacls", $"\"{path}\" /grant *S-1-5-32-544:F");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing icacls: {ex.Message}");
+            }
+        }
+
+        private static void RunCommand(string fileName, string arguments)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using (var process = new Process { StartInfo = psi })
+            {
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    Console.WriteLine($"Command failed with exit code {process.ExitCode}: {error}");
+                }
+            }
         }
     }
 }

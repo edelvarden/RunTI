@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Linq;
+using System.Management;
 using System.Media;
 using System.Threading.Tasks;
 
@@ -9,63 +10,39 @@ namespace RunTI
     {
         private static readonly string[] Adapters = { "Ethernet", "Ethernet0" };
 
-        public static async Task ToggleAdaptersAsync(bool isEnabled = true)
+        private static void ToggleAdapter(string adapterName, bool isEnabled)
         {
-            var tasks = new Task[Adapters.Length];
-            for (int i = 0; i < Adapters.Length; i++)
-            {
-                tasks[i] = ToggleAdapterAsync(Adapters[i], isEnabled);
-            }
-            await Task.WhenAll(tasks);
-        }
-
-        private static async Task ToggleAdapterAsync(string interfaceName, bool isEnabled)
-        {
-            string status = isEnabled ? "enable" : "disable";
+            string action = isEnabled ? "Enable" : "Disable";
             try
             {
-                var psi = new ProcessStartInfo
+                string query = $"SELECT * FROM Win32_NetworkAdapter WHERE NetConnectionID = '{adapterName}'";
+                using (var searcher = new ManagementObjectSearcher(query))
                 {
-                    FileName = "netsh",
-                    Arguments = $"interface set interface \"{interfaceName}\" {status}",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                using (var p = new Process { StartInfo = psi })
-                {
-                    p.Start();
-
-                    string output = await p.StandardOutput.ReadToEndAsync();
-                    string error = await p.StandardError.ReadToEndAsync();
-
-                    p.WaitForExit();
-
-                    if (p.ExitCode != 0)
+                    foreach (var obj in searcher.Get())
                     {
-                        Console.WriteLine($"Failed to {status} adapter {interfaceName}: {error}");
-                    }
-                    else
-                    {
-                        //if (isEnabled)
+                        var adapter = (ManagementObject)obj;
+                        var result = adapter.InvokeMethod(action, null);
+   
+                        //if(result != null)
                         //{
                         //    SystemSounds.Asterisk.Play();
                         //}
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error toggling adapter {interfaceName}: {ex.Message}");
-            }
+            catch{}
+        }
+
+        public static async Task ToggleAdaptersAsync(bool isEnabled = true)
+        {
+            var tasks = Adapters.Select(adapter => Task.Run(() => ToggleAdapter(adapter, isEnabled)));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         public static async Task ReloadAdaptersAsync()
         {
             await ToggleAdaptersAsync(false);
-            await Task.Delay(1000);
+            await Task.Delay(500);
             await ToggleAdaptersAsync(true);
         }
     }

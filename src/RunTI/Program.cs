@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RunTI
@@ -9,6 +10,37 @@ namespace RunTI
     {
         // Prevent idiots to touch this executable
         static readonly FileStream thisExec = new FileStream(Application.ExecutablePath, FileMode.Open, FileAccess.Read);
+
+        static async Task MainAsync(string[] args)
+        {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("No arguments, for more information use /help");
+                return;
+            }
+
+            switch (args[0].ToLower())
+            {
+                case "/help":
+                    DisplayHelpMessage();
+                    break;
+                case "/disablenetwork":
+                    await NetworkManager.ToggleAdaptersAsync(false);
+                    break;
+                case "/enablenetwork":
+                    await NetworkManager.ToggleAdaptersAsync(true);
+                    break;
+                case "/reloadnetwork":
+                    await NetworkManager.ReloadAdaptersAsync();
+                    break;
+                case "/destroyfileorfolder":
+                    Destroy.DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
+                    break;
+                default:
+                    Console.WriteLine("Invalid argument. For more information use /help");
+                    break;
+            }
+        }
 
         [STAThread]
         static void Main(string[] args)
@@ -20,24 +52,7 @@ namespace RunTI
                 return;
             }
 
-            switch (args[0].ToLower())
-            {
-                case "/help":
-                    DisplayHelpMessage();
-                    return;
-                case "/disablenetwork":
-                    NetworkManager.ToggleAdapters(false);
-                    return;
-                case "/enablenetwork":
-                    NetworkManager.ToggleAdapters(true);
-                    return;
-                case "/destroyfileorfolder":
-                    Destroy.DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
-                    return;
-                default:
-                    break;
-            }
-                
+            MainAsync(args).GetAwaiter().GetResult();
 
 #if UACB
             if (!(args.Length > 0))

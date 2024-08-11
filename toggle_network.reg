@@ -23,3 +23,11 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network\shell\01EnableNetwork\Command]
 @="RunTI.exe /EnableNetwork"
+
+
+; Reload network without confirmation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network\shell\02ReloadNetwork]
+"MUIVerb"="Reload"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\DesktopBackground\Shell\Network\shell\02ReloadNetwork\Command]
+@="RunTI.exe /ReloadNetwork"

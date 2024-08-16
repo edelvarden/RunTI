@@ -36,9 +36,6 @@ jobs:
       - name: Build the application
         run: msbuild ${{ env.Solution_Name }} /p:Configuration=Release
 
-      - name: Publish the application
-        run: msbuild ${{ env.Project_Path }} /t:Publish /p:Configuration=Release /p:OutputPath=src/RunTI/bin/Release
-
       - name: Get version from AssemblyInfo.cs
         id: get_version
         shell: pwsh
@@ -49,7 +46,6 @@ jobs:
           $versionMatch = [regex]::Match($assemblyInfoContent, $versionPattern)
           $assemblyVersion = $versionMatch.Groups[1].Value
 
-          # Get only the first three segments (major, minor, patch)
           $versionSegments = $assemblyVersion -split '\.'
           $shortVersion = "$($versionSegments[0]).$($versionSegments[1]).$($versionSegments[2])"
 

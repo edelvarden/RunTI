@@ -34,7 +34,10 @@ namespace RunTI
                     await NetworkManager.ReloadAdaptersAsync();
                     break;
                 case "/destroyfileorfolder":
-                    Destroy.DestroyFileOrFolder(string.Join(" ", args.Skip(1)));
+                    if(!Destroy.DestroyFileOrFolder(string.Join(" ", args.Skip(1))))
+                    {
+                        return;
+                    }
                     break;
                 default:
                     Console.WriteLine("Invalid argument. For more information use /help");

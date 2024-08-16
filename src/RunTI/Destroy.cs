@@ -1,43 +1,77 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace RunTI
 {
     internal class Destroy
     {
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool SetFileAttributes(string lpFileName, FileAttributes dwFileAttributes);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool DeleteFile(string lpFileName);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool RemoveDirectory(string lpPathName);
+
         public static void DestroyFileOrFolder(string path)
         {
-            string formattedPath = path.Trim().TrimStart('"').TrimEnd('"');
+            string formattedPath = Path.GetFullPath(path).Trim().TrimStart('"').TrimEnd('"');
 
-            if (string.IsNullOrWhiteSpace(formattedPath) ||
-                (!File.Exists(formattedPath) && !Directory.Exists(formattedPath)))
+            if (!IsValidPath(formattedPath))
             {
-                Console.WriteLine($"Invalid path: {formattedPath}");
                 return;
             }
 
-            try
+            if (Directory.Exists(formattedPath))
             {
-                // Take ownership and delete directory
-                if (Directory.Exists(formattedPath))
-                {
-                    Takeown(formattedPath, true);
-                    Icacls(formattedPath);
-                    Directory.Delete(formattedPath, true);
-                }
-                // Take ownership and delete file
-                else
-                {
-                    Takeown(formattedPath);
-                    Icacls(formattedPath);
-                    File.Delete(formattedPath);
-                }
+                HandleOwnership(formattedPath, true);
+                DeleteDirectory(formattedPath);
             }
-            catch{}
+            else
+            {
+                HandleOwnership(formattedPath);
+                DeleteSingleFile(formattedPath);
+            }
         }
 
-        private static void Takeown(string path, bool isDirectory = false)
+        private static bool IsValidPath(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path) && (File.Exists(path) || Directory.Exists(path));
+        }
+
+        private static void HandleOwnership(string path, bool isDirectory = false)
+        {
+            Takeown(path, isDirectory);
+            Icacls(path);
+        }
+
+        private static void DeleteSingleFile(string path)
+        {
+            SetFileAttributes(path, FileAttributes.Normal);
+            DeleteFile(path);
+        }
+
+        private static void DeleteDirectory(string path)
+        {
+            SetFileAttributes(path, FileAttributes.Normal);
+
+            foreach (var file in Directory.GetFiles(path))
+            {
+                DeleteSingleFile(file);
+            }
+
+            foreach (var dir in Directory.GetDirectories(path))
+            {
+                DeleteDirectory(dir);
+            }
+
+            RemoveDirectory(path);
+        }
+
+        private static bool Takeown(string path, bool isDirectory = false)
         {
             string commandArgs = $"/f \"{path}\"";
             if (isDirectory)
@@ -45,29 +79,15 @@ namespace RunTI
                 commandArgs += " /r /d y";
             }
 
-            try
-            {
-                RunCommand("takeown", commandArgs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error executing takeown: {ex.Message}");
-            }
+            return ExecuteCommand("takeown", commandArgs);
         }
 
-        private static void Icacls(string path)
+        private static bool Icacls(string path)
         {
-            try
-            {
-                RunCommand("icacls", $"\"{path}\" /grant *S-1-5-32-544:F");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error executing icacls: {ex.Message}");
-            }
+            return ExecuteCommand("icacls", $"\"{path}\" /grant *S-1-5-32-544:F");
         }
 
-        private static void RunCommand(string fileName, string arguments)
+        private static bool ExecuteCommand(string fileName, string arguments)
         {
             var psi = new ProcessStartInfo
             {
@@ -82,14 +102,8 @@ namespace RunTI
             using (var process = new Process { StartInfo = psi })
             {
                 process.Start();
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                {
-                    Console.WriteLine($"Command failed with exit code {process.ExitCode}: {error}");
-                }
+                return process.ExitCode == 0;
             }
         }
     }

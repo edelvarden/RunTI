@@ -15,7 +15,20 @@ function Create-Items {
     }
 }
 
-# Function to set permissions
+# Set file or folder as read-only
+function Set-ReadOnlyAttribute {
+    param (
+        [string]$Path
+    )
+    if (Test-Path $Path) {
+        $item = Get-Item $Path
+        $item.Attributes = 'ReadOnly'
+    } else {
+        Write-Host -ForegroundColor Red "Path does not exist: $Path"
+    }
+}
+
+# Set permissions for a path
 function Set-Permissions {
     param (
         [string]$Path,
@@ -48,7 +61,7 @@ function Set-Permissions {
     Set-Acl -Path $Path -AclObject $acl
 }
 
-# Function to check if a path exists with a delay
+# Check if a path exists with a delay
 function Test-PathExists {
     param (
         [string]$path
@@ -57,7 +70,7 @@ function Test-PathExists {
     return Test-Path $path
 }
 
-# Function to run the DestroyFileOrFolder command
+# Run the DestroyFileOrFolder command
 function Run-DestroyCommand {
     param (
         [string]$path
@@ -71,9 +84,9 @@ function Test-1 {
     Create-Items -filePath $filePath
     Run-DestroyCommand -path $filePath
     if (Test-PathExists -path $filePath) {
-        Write-Host -ForegroundColor Red "Test 1 failed: File $filePath still exists."
+        Write-Host -ForegroundColor Red "1. Should delete file: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 1 passed: File $filePath was successfully destroyed."
+        Write-Host -ForegroundColor Green "1. Should delete file: PASSED"
     }
 }
 
@@ -82,9 +95,9 @@ function Test-2 {
     Create-Items -folderPath $folderPath
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 2 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "2. Should delete empty folder: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 2 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "2. Should delete empty folder: PASSED"
     }
 }
 
@@ -94,9 +107,9 @@ function Test-3 {
     Create-Items -folderPath $folderPath -filePath $filePath
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 3 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "3. Should delete folder with files: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 3 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "3. Should delete folder with files: PASSED"
     }
 }
 
@@ -106,9 +119,9 @@ function Test-4 {
     Set-Permissions -path $filePath -principal "Administrators"
     Run-DestroyCommand -path $filePath
     if (Test-PathExists -path $filePath) {
-        Write-Host -ForegroundColor Red "Test 4 failed: File $filePath still exists."
+        Write-Host -ForegroundColor Red "4. Should delete file with system rights: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 4 passed: File $filePath was successfully destroyed."
+        Write-Host -ForegroundColor Green "4. Should delete file with system rights: PASSED"
     }
 }
 
@@ -118,9 +131,9 @@ function Test-5 {
     Set-Permissions -path $folderPath -principal "Administrators"
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 5 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "5. Should delete folder with system rights: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 5 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "5. Should delete folder with system rights: PASSED"
     }
 }
 
@@ -131,22 +144,22 @@ function Test-6 {
     Set-Permissions -path $folderPath -principal "Administrators"
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 6 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "6. Should delete folder with files and system rights: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 6 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "6. Should delete folder with files and system rights: PASSED"
     }
 }
 
 function Test-7 {
     $folderPath = "$PSScriptRoot\tests\Test 7"
-    $filePath = Join-Path -Path $folderPath -ChildPath "Test 8.txt"
-    Create-Items -filePath $filePath
+    $filePath = Join-Path -Path $folderPath -ChildPath "Test 7.txt"
+    Create-Items -folderPath $folderPath -filePath $filePath
     Set-Permissions -path $folderPath -principal "SYSTEM"
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 7 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "7. Should delete folder with files and SYSTEM rights: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 7 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "7. Should delete folder with files and SYSTEM rights: PASSED"
     }
 }
 
@@ -156,9 +169,9 @@ function Test-8 {
     Set-Permissions -path $folderPath -principal "SYSTEM"
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 8 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "8. Should delete empty folder with SYSTEM rights: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 8 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "8. Should delete empty folder with SYSTEM rights: PASSED"
     }
 }
 
@@ -169,13 +182,37 @@ function Test-9 {
     Set-Permissions -path $folderPath -principal "SYSTEM"
     Run-DestroyCommand -path $folderPath
     if (Test-PathExists -path $folderPath) {
-        Write-Host -ForegroundColor Red "Test 9 failed: Folder $folderPath still exists."
+        Write-Host -ForegroundColor Red "9. Should delete folder with SYSTEM rights and files: FAILED"
     } else {
-        Write-Host -ForegroundColor Green "Test 9 passed: Folder $folderPath was successfully destroyed."
+        Write-Host -ForegroundColor Green "9. Should delete folder with SYSTEM rights and files: PASSED"
     }
 }
 
-# Execute all tests
+function Test-10 {
+    $filePath = "$PSScriptRoot\tests\Test 10.txt"
+    Create-Items -filePath $filePath
+    Set-ReadOnlyAttribute -Path $filePath
+    Run-DestroyCommand -path $filePath
+    if (Test-PathExists -path $filePath) {
+        Write-Host -ForegroundColor Red "10. Should delete read-only file: FAILED"
+    } else {
+        Write-Host -ForegroundColor Green "10. Should delete read-only file: PASSED"
+    }
+}
+
+function Test-11 {
+    $folderPath = "$PSScriptRoot\tests\Test 11"
+    Create-Items -folderPath $folderPath
+    Set-ReadOnlyAttribute -Path $folderPath
+    Run-DestroyCommand -path $folderPath
+    if (Test-PathExists -path $folderPath) {
+        Write-Host -ForegroundColor Red "11. Should delete read-only folder: FAILED"
+    } else {
+        Write-Host -ForegroundColor Green "11. Should delete read-only folder: PASSED"
+    }
+}
+
+# Execute tests
 Test-1
 Test-2
 Test-3
@@ -185,8 +222,8 @@ Test-6
 Test-7
 Test-8
 Test-9
+Test-10
+Test-11
 
-# Final result
 Write-Host "All tests executed. Please check the results above."
-
 Pause

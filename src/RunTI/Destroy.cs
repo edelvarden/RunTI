@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace RunTI
 {
@@ -58,16 +59,23 @@ namespace RunTI
         {
             SetFileAttributes(path, FileAttributes.Normal);
 
-            foreach (var file in Directory.GetFiles(path))
+            // Get files and directories
+            var files = Directory.GetFiles(path);
+            var directories = Directory.GetDirectories(path);
+
+            // Delete files in parallel
+            Parallel.ForEach(files, file =>
             {
                 DeleteSingleFile(file);
-            }
+            });
 
-            foreach (var dir in Directory.GetDirectories(path))
+            // Recursively delete subdirectories in parallel
+            Parallel.ForEach(directories, dir =>
             {
                 DeleteDirectory(dir);
-            }
+            });
 
+            // Finally, remove the directory itself
             RemoveDirectory(path);
         }
 
